@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # Le client Prisma est généré, pas versionné : sans ça, les
+      # require('@prisma/client') échouent sur le runner.
+      - run: npx prisma generate
+
+      - run: npm test
+
+      # Échoue si une dépendance a une faille haute ou critique
+      - run: npm audit --audit-level=high
