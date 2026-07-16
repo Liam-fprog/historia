@@ -9,6 +9,10 @@ app.use(express.json());
 const searchRoutes = require('./routes/search');
 app.use('/api', searchRoutes);
 
+const libraryRoutes = require('./routes/library');
+app.use('/api', libraryRoutes);
+
+
 // Endpoint de santé : vérifie que le serveur ET la base répondent.
 // C'est ce que Render appellera pour savoir si l'app est vivante.
 app.get('/health', async (req, res, next) => {
