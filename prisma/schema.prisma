@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MediaType {
+  MOVIE
+  SERIES
+  MANGA
+}
+
+enum TrackingStatus {
+  TO_WATCH
+  IN_PROGRESS
+  DONE
+}
+
+model Media {
+  id         Int       @id @default(autoincrement())
+  type       MediaType
+  title      String
+  year       Int?
+  posterUrl  String?
+  overview   String?
+
+  // Identifiant chez la source externe (TMDb pour l'instant)
+  externalSource String   // "tmdb"
+  externalId     String
+
+  genres     Genre[]
+  tracked    TrackedItem?
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Un même film ne peut pas être ajouté deux fois
+  @@unique([externalSource, externalId])
+}
+
+model Genre {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  media  Media[]
+}
+
+model TrackedItem {
+  id      Int            @id @default(autoincrement())
+  media   Media          @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  mediaId Int            @unique
+
+  status  TrackingStatus @default(TO_WATCH)
+  rating  Int?           // 1 à 10, validé côté code
+
+  progressCurrent Int?    // épisode / tome en cours
+  progressTotal   Int?
+  progressUnit    String? // "episode", "tome", "film"
+
+  startedAt   DateTime?
+  finishedAt  DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
